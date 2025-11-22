@@ -1,0 +1,86 @@
+services:
+  redis-stack:
+    image: redis/redis-stack:latest
+    platform: linux/arm64
+    command: ["redis-stack-server", "--protected-mode", "no"]
+    container_name: redis-stack
+    restart: unless-stopped
+    ports:
+      - "6390:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - volt-edge-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
+      interval: 3s
+      timeout: 10s
+      retries: 8
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight
+    restart: unless-stopped
+    ports:
+      - "5540:5540"
+    volumes:
+      - redisinsight_data:/data
+    networks:
+      - volt-edge-network
+    depends_on:
+      - redis-stack
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: voltedge
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+    ports:
+      - "3310:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - volt-edge-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-P3306"]
+      timeout: 20s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    platform: linux/arm64
+    restart: unless-stopped
+    command: pnpm dev
+    ports:
+      - "3001:3001"
+    depends_on:
+      redis-stack:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - huggingface_cache:/app/.cache/huggingface
+    environment:
+      - HF_HOME=/app/.cache/huggingface
+      - WATCHPACK_POLLING=true
+    networks:
+      - volt-edge-network
+    env_file: .env
+
+volumes:
+  redis_data:
+  mysql_data:
+  redisinsight_data:
+  huggingface_cache:
+
+networks:
+  volt-edge-network:
+    driver: bridge

@@ -3,24 +3,48 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "start": "next start -p 3001",
+    "lint": "eslint",
+    "init-db": "tsx scripts/init-database.mts",
+    "exp": "tsx scripts/exp.mts"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.1.0",
+    "@huggingface/transformers": "^3.8.0",
+    "@langchain/core": "^1.0.6",
+    "@langchain/openai": "^1.1.2",
+    "@langchain/redis": "^1.0.0",
+    "chart.js": "^4.5.1",
+    "dotenv": "^16.4.5",
+    "highlight.js": "^11.11.1",
+    "katex": "^0.16.25",
+    "langchain": "^1.0.6",
+    "lucide-react": "^0.552.0",
+    "mysql2": "^3.15.3",
+    "next": "16.0.1",
     "react": "19.2.0",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "19.2.0",
-    "next": "16.0.1"
+    "react-markdown": "^10.1.0",
+    "redis": "^5.9.0",
+    "rehype-highlight": "^7.0.2",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "uuid": "^13.0.0",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
     "eslint": "^9",
-    "eslint-config-next": "16.0.1"
+    "eslint-config-next": "16.0.1",
+    "tailwindcss": "^4",
+    "tsx": "^4.19.2",
+    "typescript": "^5"
   }
 }
