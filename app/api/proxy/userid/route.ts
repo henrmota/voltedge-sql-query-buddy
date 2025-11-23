@@ -1,14 +1,19 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  let userId = req.cookies.userId;
+export async function GET(req: NextRequest) {
+  let userId = req.cookies.get('userId')?.value;
+  
   if (!userId) {
     userId = uuidv4();
-    res.setHeader(
-      'Set-Cookie',
-      `userId=${userId}; Path=/; HttpOnly; SameSite=Lax`
-    );
+    const response = NextResponse.json({ userId });
+    response.cookies.set('userId', userId, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+    });
+    return response;
   }
-  res.status(200).json({ userId });
+  
+  return NextResponse.json({ userId });
 }

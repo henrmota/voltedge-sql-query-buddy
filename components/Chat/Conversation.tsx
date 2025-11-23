@@ -199,7 +199,7 @@ const ChartRenderer = React.memo(({ code, graphColors }: { code: string; graphCo
         if (typeof dataset.borderColor === 'string') {
           processedDataset.borderColor = cleanColorString(dataset.borderColor);
         } else if (Array.isArray(dataset.borderColor)) {
-          processedDataset.borderColor = dataset.borderColor.map(c => 
+          processedDataset.borderColor = dataset.borderColor.map((c: string | unknown) => 
             typeof c === 'string' ? cleanColorString(c) : c
           );
         } else {
@@ -220,7 +220,7 @@ const ChartRenderer = React.memo(({ code, graphColors }: { code: string; graphCo
         if (typeof dataset.backgroundColor === 'string') {
           processedDataset.backgroundColor = cleanColorString(dataset.backgroundColor);
         } else if (Array.isArray(dataset.backgroundColor)) {
-          processedDataset.backgroundColor = dataset.backgroundColor.map(c => 
+          processedDataset.backgroundColor = dataset.backgroundColor.map((c: string | unknown) => 
             typeof c === 'string' ? cleanColorString(c) : c
           );
         } else {

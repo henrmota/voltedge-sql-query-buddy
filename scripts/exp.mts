@@ -28,12 +28,7 @@ const payload: ChainStepState = {
     createdAt: 0,
     status: MessageStatus.COMPLETED
   }
-],
-  tables: [
-    "potatoes",
-    "tomatoes", 
-    "orders",
-  ]
+]
 }
 
 const model = "gpt-4o-mini";

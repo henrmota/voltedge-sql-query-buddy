@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Enable standalone output for Docker production builds
+  output: 'standalone',
   async rewrites() {
     return [
       {
@@ -8,20 +10,6 @@ const nextConfig: NextConfig = {
         destination: 'http://volt-backend:4000/api/:path*',
       },
     ];
-  },
-  // Disable Turbopack to use webpack watchOptions
-  experimental: {
-    turbo: false,
-  },
-  webpack: (config) => {
-    config.watchOptions = {
-      ignored: [
-        '**/node_modules',
-        '**/.git',
-        '**/.next',
-      ],
-    };
-    return config;
   },
 };
 
