@@ -96,6 +96,16 @@ I decided to use **Transformer.js** (Hugging Face Transformers in JavaScript) fo
 
 The embeddings are used for RAG (Retrieval Augmented Generation) to find relevant database schema information based on user queries.
 
+### Server Sent Events (SSE) for Real-Time Communication
+
+The application uses **Server Sent Events (SSE)** to provide real-time updates to the frontend during chain execution. This allows users to see:
+
+- **Thinking indicators** - Shows which step is currently executing
+- **Streaming responses** - Displays results as they're generated
+- **Progress updates** - Real-time feedback on query execution and analysis
+
+SSE is implemented using Next.js API routes and the native `EventSource` API in the browser. This provides a lightweight, efficient way to stream updates without the overhead of WebSockets, perfect for one-way server-to-client communication.
+
 ### Chain + Routing Architecture
 
 Instead of using autonomous agents, I implemented a **chain-based architecture with intelligent routing**:
@@ -230,6 +240,40 @@ Here's the complete chain flow in ASCII:
 5. **Query Executor** - Executes validated SQL queries
 6. **Result Sampler** - Samples large result sets (top + bottom rows)
 7. **Insights** - Generates natural language insights from results
+
+## 💡 Example Queries
+
+Here are some suggested and tested prompts that demonstrate different capabilities of the system:
+
+### Performance Analysis
+```
+Give me the top 10 most performant products
+```
+This query tests the system's ability to:
+- Generate complex SQL with ordering and limiting
+- Handle performance metrics calculations
+- Provide insights on top-performing items
+
+### Large Result Set Handling
+```
+Give me products prices
+```
+This query demonstrates:
+- **Result sampling** - When results exceed 100 rows, the system samples the top and bottom rows
+- Efficient handling of large datasets
+- Clear indication when results are sampled vs. complete
+
+### Comparative Analysis
+```
+Analyze product price vs performance
+```
+This query showcases:
+- Multi-dimensional analysis
+- Cross-column comparisons
+- Insight generation from relationships between metrics
+- Chart generation for visual representation
+
+These examples highlight the system's ability to handle various query types, from simple data retrieval to complex analytical questions.
 
 ## 🔮 Future Improvements
 
