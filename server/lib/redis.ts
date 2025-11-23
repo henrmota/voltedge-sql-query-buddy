@@ -1,6 +1,7 @@
 import { Conversation, Message, MessageStatus, Preferences } from '@/types';
 import { createClient } from 'redis';
 import { defaultPreferences } from '../defaults';
+import { cookies } from "next/headers";
 
 declare global {
     var _redisClient: ReturnType<typeof createClient> | undefined;
@@ -162,12 +163,15 @@ export async function saveUserPreferences(userId: string, preferences: Partial<P
     console.log('saveUserPreferences done:', userId);
 }
 
-export async function getUserPreferences(userId: string): Promise<Preferences> {
+export async function getUserPreferences(): Promise<Preferences> {
+    const cookieStore = await cookies();
+    const userId = cookieStore.get('userId')?.value || '';
     await ensureRedisInitialized();
     console.log('getUserPreferences called:', userId);
     const client = getRedisClient();
     try {
         const data = await client.hGetAll(`user:${userId}`);
+        console.log({ data })
         const result = {
             ...defaultPreferences,
             ...data,

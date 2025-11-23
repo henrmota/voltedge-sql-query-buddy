@@ -10,7 +10,7 @@ import fs from "fs";
 
 // Configure cache directory for Hugging Face transformers
 // Use HF_HOME if set, otherwise default to /app/.cache/huggingface
-const cacheDir = process.env.HF_HOME || path.join(process.cwd(), '.cache', 'huggingface');
+const cacheDir = process.env.HF_HOME || path.join(process.cwd(), 'tmp', 'huggingface');
 env.cacheDir = cacheDir;
 
 // Ensure cache directory exists

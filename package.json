@@ -8,6 +8,7 @@
     "start": "next start -p 3001",
     "lint": "eslint",
     "init-db": "tsx scripts/init-database.mts",
+    "preload-model": "tsx scripts/preload-model.mts",
     "exp": "tsx scripts/exp.mts"
   },
   "dependencies": {

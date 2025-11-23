@@ -24,7 +24,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const userInfo = await handleGetUserInfo();
+  const res = await fetch("http://localhost:3001/api/ensure-id", {
+    cache: "no-store",
+  });
+  
+  const { userId } = await res.json(); 
+  const userInfo = await handleGetUserInfo(userId);
 
 
   return (

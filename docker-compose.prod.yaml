@@ -68,7 +68,7 @@ services:
     volumes:
       - huggingface_cache:/app/.cache/huggingface
     environment:
-      - HF_HOME=/app/.cache/huggingface
+      - HF_HOME=/tmp/hf
       - NODE_ENV=production
       - INIT_DB=${INIT_DB:-true}
       - DB_HOST=mysql_db

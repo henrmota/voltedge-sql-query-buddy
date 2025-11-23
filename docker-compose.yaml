@@ -69,7 +69,7 @@ services:
       - /app/node_modules
       - huggingface_cache:/app/.cache/huggingface
     environment:
-      - HF_HOME=/app/.cache/huggingface
+      - HF_HOME=/tmp/hf
       - WATCHPACK_POLLING=true
     networks:
       - volt-edge-network

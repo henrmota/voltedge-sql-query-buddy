@@ -25,7 +25,7 @@ export async function callAsk(question: string, conversationId: number): Promise
   ] = await Promise.all(
     [
       conversationId > 0 ? getConversation(userId, conversationId) : createConversation(userId),
-      getUserPreferences(userId)
+      getUserPreferences()
     ]
   );
 

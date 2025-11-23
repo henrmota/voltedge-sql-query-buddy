@@ -16,7 +16,10 @@ RUN pnpm install
 COPY . .
 
 # Set Hugging Face cache directory
-ENV HF_HOME=/app/.cache/huggingface
+ENV HF_HOME=/tmp/hf
+ENV TRANSFORMERS_CACHE=/tmp/hf
+
+RUN mkdir -p /tmp/hf && chmod -R 777 /tmp/hf
 
 # Clear any old corrupted cache before preloading (more aggressive)
 RUN pnpm tsx scripts/clear-old-cache.mts || true

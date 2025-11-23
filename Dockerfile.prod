@@ -1,34 +1,49 @@
 # Production Dockerfile for Next.js frontend (multi-stage build)
+
+# --------------------------
 # Build stage
+# --------------------------
 FROM --platform=linux/arm64 node:20-slim AS builder
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install system dependencies for HTTPS downloads + pnpm + tsx
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl git && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy package files for dependency installation
+RUN npm install -g pnpm tsx
+
+# Copy package files and install dependencies
 COPY package.json pnpm-lock.yaml* ./
-
-# Install dependencies (including devDependencies for build)
 RUN pnpm install --frozen-lockfile
 
-# Copy application source
+# Copy full project source
 COPY . .
+
+# Set HuggingFace cache directory
+ENV HF_HOME=/tmp/hf
+ENV TRANSFORMERS_CACHE=/tmp/hf
+RUN mkdir -p /tmp/hf
+
+# Preload HuggingFace model using npm script
+RUN pnpm run preload-model
 
 # Set build-time environment variables
 ARG NEXT_PUBLIC_BACKEND_API_URL
 ENV NEXT_PUBLIC_BACKEND_API_URL=$NEXT_PUBLIC_BACKEND_API_URL
 
-# Build the Next.js application
+# Build Next.js standalone
 RUN pnpm build
 
+# --------------------------
 # Production stage
+# --------------------------
 FROM --platform=linux/arm64 node:20-slim AS runner
 
 WORKDIR /app
 
-# Install pnpm and tsx for running init scripts
+# Install pnpm + tsx for scripts if needed
 RUN npm install -g pnpm tsx
 
 # Set production environment
@@ -39,13 +54,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy necessary files from builder
-# Next.js standalone output structure: .next/standalone contains the entire app
+# Copy Next.js standalone app
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Copy scripts and necessary source files for init-db
+# Copy scripts, server, types, and package.json
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/server ./server
 COPY --from=builder --chown=nextjs:nodejs /app/types ./types
@@ -53,12 +67,17 @@ COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
-# Copy and set up entrypoint script
-COPY --chown=nextjs:nodejs docker-entrypoint.sh /app/docker-entrypoint.sh
+# Copy and set up entrypoint script from host
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 
-# Set Hugging Face cache directory
-ENV HF_HOME=/app/.cache/huggingface
+# Copy preloaded HuggingFace cache from builder
+COPY --from=builder /tmp/hf /tmp/hf
+RUN chmod -R 777 /tmp/hf
+
+# Set HuggingFace environment variables
+ENV HF_HOME=/tmp/hf
+ENV TRANSFORMERS_CACHE=/tmp/hf
 
 # Switch to non-root user
 USER nextjs
@@ -66,14 +85,12 @@ USER nextjs
 # Expose port
 EXPOSE 3001
 
-# Set hostname to 0.0.0.0 for Docker
+# Set hostname for Docker
 ENV HOSTNAME="0.0.0.0"
 ENV PORT=3001
 
-# Use entrypoint script to wait for services and run init-db
+# Entrypoint to run init scripts if needed
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
-# Start Next.js in production mode
-# The standalone output creates a server.js in the root
+# Start Next.js standalone server
 CMD ["node", "server.js"]
-
