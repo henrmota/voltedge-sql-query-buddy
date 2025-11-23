@@ -52,6 +52,8 @@ I chose to build this project in JavaScript/TypeScript as a personal challenge. 
 2. **Full-stack expertise** - As a full-stack developer, I wanted to learn how to integrate LLMs into my own applications without switching languages
 3. **Unified codebase** - Keep everything in one language for easier maintenance and deployment
 
+**Note:** I did experiment with Python implementations during development to validate concepts and compare approaches. The choice of JavaScript/TypeScript wasn't about disliking Python (which is excellent for LLM work), but rather about challenging myself to build a complete LLM application in my primary stack.
+
 This project demonstrates that JavaScript/TypeScript can be a viable choice for LLM applications, especially when you need tight integration with web applications.
 
 ## 🧠 What I Learned About LLMs
