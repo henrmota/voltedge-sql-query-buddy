@@ -98,6 +98,36 @@ I decided to use **Transformer.js** (Hugging Face Transformers in JavaScript) fo
 
 The embeddings are used for RAG (Retrieval Augmented Generation) to find relevant database schema information based on user queries.
 
+### Redis for Vector Database and Memory
+
+**Redis** serves a dual purpose in this application:
+
+1. **Vector Database** - Using Redis Stack with vector search capabilities, Redis stores and indexes embeddings for RAG. When a user asks a question, the system:
+   - Generates embeddings for the query using Transformer.js
+   - Searches Redis for similar database schema documents
+   - Retrieves relevant table/column information to guide SQL generation
+
+2. **Conversation Memory** - Redis stores all conversation history and messages:
+   - Messages are stored in Redis lists for each conversation
+   - Conversation metadata is maintained in sorted sets for efficient retrieval
+   - This provides fast access to conversation context without querying a traditional database
+
+This dual usage makes Redis a critical component for both the RAG pipeline and maintaining conversation state, providing fast, in-memory access to both vector embeddings and conversation data.
+
+### Database Schema and Anomaly Testing
+
+The database schema includes **coupons** and **coupon_redemptions** tables specifically designed to test anomaly detection capabilities. The system seeds the database with:
+
+- **Normal coupons** - Standard discount coupons (5-25% discount) applied to regular orders
+- **Anomaly coupons** - Negative discount coupons that actually increase order totals instead of decreasing them
+
+These anomaly coupons create data anomalies that the LLM can detect and report in insights. For example, when analyzing coupon usage, the system can identify suspicious patterns like:
+- Orders where a "discount" actually increased the total amount
+- Negative discount values that should be flagged as errors
+- Unusual redemption patterns
+
+This schema design allows testing the system's ability to identify and report data quality issues and anomalies in business data, demonstrating how LLMs can be used for data validation and anomaly detection beyond just querying.
+
 ### Server Sent Events (SSE) for Real-Time Communication
 
 The application uses **Server Sent Events (SSE)** to provide real-time updates to the frontend during chain execution. This allows users to see:
@@ -121,6 +151,48 @@ The architecture routes requests based on intent:
 - `sql-analysis` → Full data analysis chain
 - `direct-answer` → Simple LLM response from conversation history
 - `none` → Default response
+
+## ✅ Good Decisions
+
+Throughout the development of this project, several architectural decisions proved to be particularly effective:
+
+### Backend Message History Management
+
+**Backend stores and retrieves message history from Redis** - Instead of requiring the frontend to send the entire conversation history with each request, the backend maintains conversation state in Redis. This approach:
+
+- **Reduces payload size** - Frontend only sends the new message, not the entire history
+- **Single source of truth** - Backend controls conversation state, preventing inconsistencies
+- **Better performance** - No need to serialize/deserialize large message arrays on every request
+- **Easier debugging** - All conversation data is centralized and accessible
+
+### History Summarization
+
+**Conversation history is summarized** - Before processing, the system summarizes conversation history to reduce token usage. This works well for this project, but:
+
+- **Token efficiency** - Summarization significantly reduces the number of tokens sent to the LLM
+- **Context preservation** - Important information is retained while removing redundancy
+- **Project-specific** - For this simple project, summarization works effectively, but more testing would be needed for complex, multi-turn conversations in production systems
+- **Trade-offs** - There's a balance between token savings and potential information loss that needs careful consideration
+
+### SSE vs WebSockets
+
+**Server Sent Events (SSE) over WebSockets** - Chose SSE for real-time updates because:
+
+- **Less overhead** - SSE is simpler and lighter than WebSockets for one-way communication
+- **Easier implementation** - Native browser support with `EventSource`, no complex connection management
+- **Perfect fit** - One-way server-to-client updates don't need bidirectional communication
+- **Automatic reconnection** - Browsers handle SSE reconnection automatically
+
+### Step-by-Step Visibility
+
+**Showing each step while final message is not streamed** - The system displays intermediate steps (thinking indicators, SQL generation, query execution) before the final answer:
+
+- **Transparency** - Users see exactly what's happening at each stage
+- **Better UX** - Reduces perceived wait time by showing progress
+- **Debugging** - Makes it easier to identify where issues occur in the chain
+- **Trust** - Users understand how the answer was generated, not just the final result
+
+These decisions collectively contribute to a more efficient, maintainable, and user-friendly system.
 
 ## 📊 Architecture Flow
 
@@ -294,6 +366,7 @@ These examples highlight the system's ability to handle various query types, fro
 - **Query Explanation** - Explain how SQL was generated
 - **Result Export** - Export query results to CSV/JSON
 - **Query Validation Feedback** - Show why queries were rejected
+- **Graph Improvements** - Enhance chart visualizations (currently using Chart.js) with better styling, interactivity, and data representation
 
 ### Architecture
 - **Step Retry Logic** - Automatic retry with exponential backoff
